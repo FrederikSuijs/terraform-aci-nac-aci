@@ -446,3 +446,23 @@ variable "transport_data_plane" {
     error_message = "`transport_data_plane`: Allowed value are: `sr_mpls`, `mpls`."
   }
 }
+
+variable "netflow_monitor_policies" {
+  type = list(object({
+    ip_filter_type      = optional(string, "ipv4")
+    netflow_policy_name = optional(string, "")
+  }))
+  default = []
+
+  validation {
+    condition = alltrue([
+      for i in var.netflow_monitor_policies : i.ip_filter_type == null || try(contains(["ipv4", "ipv6", "ce", "unspecified"], i.ip_filter_type), false)
+    ])
+    error_message = "`type`: Allowed values are `ipv4`, `ipv6`, `ce` or `unspecified`."
+  }
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9_.:-]{0,64}$", var.netflow_policy))
+    error_message = "Allowed characters: `a`-`z`, `A`-`Z`, `0`-`9`, `_`, `.`, `:`, `-`. Maximum characters: 64."
+  }
+}

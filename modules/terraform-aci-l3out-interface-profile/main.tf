@@ -133,6 +133,7 @@ locals {
       }
     ] if int.floating_svi == true
   ])
+  netflow_monitor_policies = var.netflow_monitor_policies
 }
 
 resource "aci_rest_managed" "l3extLIfP" {
@@ -541,5 +542,15 @@ resource "aci_rest_managed" "mplsRsIfPol" {
   class_name = "mplsRsIfPol"
   content = {
     tnMplsIfPolName = "default"
+  }
+}
+
+resource "aci_rest_managed" "l3extRsLIfPToNetflowMonitorPol" {
+  for_each   = { for item in local.netflow_monitor_policies : item.key => item.value }
+  dn         = "${aci_rest_managed.l3extLIfP.dn}//rslIfPToNetflowMonitorPol-[splunk-netflow.mon]-ipv4 "
+  class_name = "l3extRsLIfPToNetflowMonitorPol"
+  content = {
+    fltType                 = each.value.ip_filter_type
+    tnNetflowMonitorPolName = each.value.netflow_policy_name
   }
 }
